@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:14
+    container_name: sensor-pro
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass123
+      POSTGRES_DB: spbase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
