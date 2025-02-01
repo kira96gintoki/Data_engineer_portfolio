@@ -1,36 +1,59 @@
 import psycopg2
 
+# Database connection parameters
 DB_HOST = 'localhost'
 DB_PORT = '5432'
 DB_NAME = 'spbase'
 DB_USER = 'postgres'
 DB_PASS = 'pass123'
 
-# Establish a connection to the PostgreSQL database
-conn = psycopg2.connect(
-    host=DB_HOST,
-    port=DB_PORT,
-    dbname=DB_NAME,
-    user=DB_USER,
-    password=DB_PASS
-)
+try:
+    # Establish a connection to the PostgreSQL database using a context manager
+    with psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS
+    ) as conn:
+        # Create a cursor object using a context manager
+        with conn.cursor() as cursor:
+            # Create schema
+            create_schema_query = 'CREATE SCHEMA IF NOT EXISTS spinfo;'
+            cursor.execute(create_schema_query)
+            conn.commit()
+            print("Schema created successfully.")
+            
+            # Create tables
+            create_table1_query = '''
+                CREATE TABLE IF NOT EXISTS spinfo.measure (
+                    ts INTEGER,
+                    device VARCHAR,
+                    co DOUBLE PRECISION,
+                    humidity DOUBLE PRECISION,
+                    light BOOLEAN,
+                    lpg DOUBLE PRECISION,
+                    motion BOOLEAN,
+                    smoke DOUBLE PRECISION,
+                    temp VARCHAR
+                );
+            '''
+            cursor.execute(create_table1_query)
+            conn.commit()
+            print("Table 'measure' created successfully.")
 
-# Create a cursor object
-cur = conn.cursor()
+            create_table2_query = '''
+                CREATE TABLE IF NOT EXISTS spinfo.sensormetadata (
+                    ID INTEGER,
+                    location VARCHAR(100),
+                    type VARCHAR(100)
+                );
+            '''
+            cursor.execute(create_table2_query)
+            conn.commit()
+            print("Table 'sensormetadata' created successfully.")
 
-# Create schema 
-create_schema_query = 'CREATE SCHEMA IF NOT EXISTS spinfo;' 
-cur.execute(create_schema_query)
-
-# Create tables 
-create_table1_query = ''' CREATE TABLE IF NOT EXISTS spinfo.measure ( ts INTEGER, device VARCHAR, co double precision, humidity double precision, light boolean, lpg double precision, motion boolean, smoke double precision, temp VARCHAR ); ''' 
-cur.execute(create_measure_query) 
-conn.commit() 
-create_table2_query = ''' CREATE TABLE IF NOT EXISTS spinfo.sensormetadata ( ID INTEGER, location VARCHAR(100), type VARCHAR(100) ); ''' 
-cur.execute(create_sensormetadata_query) 
-conn.commit()
-
-cur.close()
-conn.close()
+except psycopg2.Error as e:
+    print(f"Error setting up database: {e}")
 
 print("Database setup complete!")
